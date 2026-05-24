@@ -3,243 +3,259 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Калькулятор</title>
+  <title>ИИ Калькулятор</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@400;600&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #f0f0f0;
-      font-family: 'Courier New', monospace;
+    :root {
+      --bg: #0d0d0d; --surface: #161616; --surface2: #1e1e1e;
+      --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+      --text: #f0f0f0; --text2: #888; --accent: #00e5a0; --accent2: #00b87a;
+      --user-bg: #1a2a22; --radius: 16px;
     }
-
-    .calc {
-      width: 320px;
-      background: #e8e8e8;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-    }
-
-    .display {
-      padding: 1.25rem 1.25rem 1rem;
-      background: #fff;
-      min-height: 96px;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      align-items: flex-end;
-      gap: 4px;
-    }
-
-    .display-expr {
-      font-size: 13px;
-      color: #aaa;
-      min-height: 18px;
-      word-break: break-all;
-      text-align: right;
-    }
-
-    .display-main {
-      font-size: 38px;
-      font-weight: 500;
-      color: #111;
-      letter-spacing: -1px;
-      word-break: break-all;
-      text-align: right;
-      line-height: 1.1;
-    }
-
-    .btns {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      padding: 10px;
-    }
-
-    .btn {
-      height: 68px;
-      border-radius: 10px;
-      border: none;
-      background: #fff;
-      color: #111;
-      font-family: inherit;
-      font-size: 20px;
-      font-weight: 400;
-      cursor: pointer;
-      transition: background 0.1s, transform 0.08s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      user-select: none;
-    }
-
-    .btn:hover { background: #f5f5f5; }
-    .btn:active { transform: scale(0.93); }
-
-    .btn.fn {
-      background: #d4d4d4;
-      color: #444;
-      font-size: 15px;
-    }
-    .btn.fn:hover { background: #c8c8c8; }
-
-    .btn.op {
-      background: #d0e8ff;
-      color: #1a5fa0;
-      font-size: 22px;
-    }
-    .btn.op:hover { background: #b8d8f8; }
-
-    .btn.eq {
-      background: #1a6fc4;
-      color: #fff;
-      font-size: 24px;
-    }
-    .btn.eq:hover { background: #155aa0; }
-
-    .btn.span2 {
-      grid-column: span 2;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      body { background: #1a1a1a; }
-      .calc { background: #2a2a2a; }
-      .display { background: #1f1f1f; }
-      .display-main { color: #f0f0f0; }
-      .display-expr { color: #666; }
-      .btn { background: #333; color: #eee; }
-      .btn:hover { background: #3d3d3d; }
-      .btn.fn { background: #3a3a3a; color: #bbb; }
-      .btn.fn:hover { background: #444; }
-      .btn.op { background: #0d3a66; color: #7ab8f5; }
-      .btn.op:hover { background: #164d88; }
-      .btn.eq { background: #378ADD; color: #04223f; }
-      .btn.eq:hover { background: #5598e0; }
-    }
+    body { background: var(--bg); color: var(--text); font-family: 'JetBrains Mono', monospace; min-height: 100vh; display: flex; flex-direction: column; }
+    header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; background: var(--surface); position: sticky; top: 0; z-index: 10; }
+    .logo { width: 36px; height: 36px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Unbounded', sans-serif; font-size: 11px; font-weight: 600; color: #000; flex-shrink: 0; }
+    .header-title { font-family: 'Unbounded', sans-serif; font-size: 14px; font-weight: 600; }
+    .header-sub { font-size: 11px; color: var(--text2); margin-top: 2px; }
+    .chat { flex: 1; overflow-y: auto; padding: 24px 16px; display: flex; flex-direction: column; gap: 20px; max-width: 720px; width: 100%; margin: 0 auto; }
+    .chat::-webkit-scrollbar { width: 4px; }
+    .chat::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+    .welcome { text-align: center; padding: 40px 20px; animation: fadeUp 0.5s ease both; }
+    .welcome-icon { font-size: 48px; margin-bottom: 16px; }
+    .welcome h2 { font-family: 'Unbounded', sans-serif; font-size: 20px; font-weight: 600; margin-bottom: 8px; color: var(--accent); }
+    .welcome p { font-size: 13px; color: var(--text2); line-height: 1.7; max-width: 400px; margin: 0 auto 24px; }
+    .examples { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .example-btn { background: var(--surface2); border: 1px solid var(--border2); color: var(--text2); border-radius: 20px; padding: 8px 14px; font-size: 12px; font-family: inherit; cursor: pointer; transition: all 0.2s; }
+    .example-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,229,160,0.06); }
+    .msg { display: flex; gap: 12px; animation: fadeUp 0.3s ease both; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .msg.user { flex-direction: row-reverse; }
+    .avatar { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+    .avatar.ai { background: var(--accent); color: #000; font-family: 'Unbounded', sans-serif; font-size: 10px; font-weight: 600; }
+    .avatar.user-av { background: var(--surface2); border: 1px solid var(--border2); }
+    .bubble { max-width: 80%; padding: 12px 16px; border-radius: var(--radius); font-size: 14px; line-height: 1.6; }
+    .msg.user .bubble { background: var(--user-bg); border: 1px solid rgba(0,229,160,0.2); border-bottom-right-radius: 4px; }
+    .msg.ai .bubble { background: var(--surface); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+    .result-number { font-family: 'Unbounded', sans-serif; font-size: 32px; font-weight: 600; color: var(--accent); display: block; margin: 8px 0 4px; line-height: 1.2; }
+    .result-expr { font-size: 12px; color: var(--text2); display: block; margin-bottom: 4px; }
+    .result-text { font-size: 13px; color: var(--text2); margin-top: 6px; display: block; }
+    .typing { display: flex; gap: 5px; align-items: center; padding: 4px 0; }
+    .typing span { width: 7px; height: 7px; background: var(--accent); border-radius: 50%; animation: typingDot 1.2s infinite; }
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typingDot { 0%,60%,100% { opacity:0.2; transform:scale(0.8); } 30% { opacity:1; transform:scale(1.2); } }
+    .error-text { color: #ff6b6b; }
+    .input-area { padding: 16px; border-top: 1px solid var(--border); background: var(--surface); position: sticky; bottom: 0; }
+    .input-wrap { max-width: 720px; margin: 0 auto; display: flex; gap: 10px; align-items: flex-end; background: var(--surface2); border: 1px solid var(--border2); border-radius: 14px; padding: 10px 10px 10px 16px; transition: border-color 0.2s; }
+    .input-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,229,160,0.08); }
+    textarea { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-family: inherit; font-size: 14px; resize: none; line-height: 1.5; max-height: 120px; min-height: 24px; padding: 0; }
+    textarea::placeholder { color: var(--text2); }
+    .send-btn { width: 36px; height: 36px; background: var(--accent); border: none; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; color: #000; }
+    .send-btn:hover { background: var(--accent2); transform: scale(1.05); }
+    .send-btn:active { transform: scale(0.94); }
+    .send-btn:disabled { background: var(--surface2); color: var(--text2); cursor: not-allowed; transform: none; }
+    .send-btn svg { width: 16px; height: 16px; }
+    .hint { text-align: center; font-size: 11px; color: var(--text2); margin-top: 8px; max-width: 720px; margin-left: auto; margin-right: auto; }
+    .formula-badge { display: inline-block; background: rgba(0,229,160,0.1); border: 1px solid rgba(0,229,160,0.2); border-radius: 6px; padding: 2px 8px; font-size: 11px; color: var(--accent); margin-bottom: 6px; }
   </style>
 </head>
 <body>
 
-<div class="calc">
-  <div class="display">
-    <div class="display-expr" id="expr"></div>
-    <div class="display-main" id="main">0</div>
+<header>
+  <div class="logo">ИИ</div>
+  <div>
+    <div class="header-title">ИИ Калькулятор</div>
+    <div class="header-sub">Понимает слова — считает точно</div>
   </div>
+</header>
 
-  <div class="btns">
-    <button class="btn fn" data-action="clear">AC</button>
-    <button class="btn fn" data-action="sign">+/−</button>
-    <button class="btn fn" data-action="percent">%</button>
-    <button class="btn op" data-action="op" data-val="÷">÷</button>
-
-    <button class="btn" data-action="digit" data-val="7">7</button>
-    <button class="btn" data-action="digit" data-val="8">8</button>
-    <button class="btn" data-action="digit" data-val="9">9</button>
-    <button class="btn op" data-action="op" data-val="×">×</button>
-
-    <button class="btn" data-action="digit" data-val="4">4</button>
-    <button class="btn" data-action="digit" data-val="5">5</button>
-    <button class="btn" data-action="digit" data-val="6">6</button>
-    <button class="btn op" data-action="op" data-val="−">−</button>
-
-    <button class="btn" data-action="digit" data-val="1">1</button>
-    <button class="btn" data-action="digit" data-val="2">2</button>
-    <button class="btn" data-action="digit" data-val="3">3</button>
-    <button class="btn op" data-action="op" data-val="+">+</button>
-
-    <button class="btn span2" data-action="digit" data-val="0">0</button>
-    <button class="btn" data-action="dot">.</button>
-    <button class="btn eq" data-action="eq">=</button>
+<div class="chat" id="chat">
+  <div class="welcome" id="welcome">
+    <div class="welcome-icon">🧮</div>
+    <h2>ИИ Калькулятор</h2>
+    <p>Пиши примеры цифрами или словами. ИИ поймёт — JavaScript посчитает точно!</p>
+    <div class="examples">
+      <button class="example-btn" onclick="sendExample(this.textContent)">2 + 2</button>
+      <button class="example-btn" onclick="sendExample(this.textContent)">15 процентов от 3000</button>
+      <button class="example-btn" onclick="sendExample(this.textContent)">двести пятьдесят разделить на семь</button>
+      <button class="example-btn" onclick="sendExample(this.textContent)">корень из 144</button>
+      <button class="example-btn" onclick="sendExample(this.textContent)">2 в степени 10</button>
+      <button class="example-btn" onclick="sendExample(this.textContent)">sin 90 градусов</button>
+      <button class="example-btn" onclick="sendExample(this.textContent)">тысяча плюс пятьсот минус двадцать три</button>
+      <button class="example-btn" onclick="sendExample(this.textContent)">1234 * 5678</button>
+    </div>
   </div>
 </div>
 
+<div class="input-area">
+  <div class="input-wrap">
+    <textarea id="input" placeholder="Напиши пример... например: корень из 256 или двести плюс триста" rows="1"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+    </button>
+  </div>
+  <div class="hint">Enter — отправить &nbsp;·&nbsp; Shift+Enter — новая строка</div>
+</div>
+
 <script>
-  let current = '0', prev = '', operator = '', justEvaled = false;
+const chatEl = document.getElementById('chat');
+const inputEl = document.getElementById('input');
+const sendBtn = document.getElementById('sendBtn');
 
-  const mainEl = document.getElementById('main');
-  const exprEl = document.getElementById('expr');
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+});
 
-  function updateDisplay() {
-    let txt = current;
-    if (txt !== 'Ошибка' && txt.length > 12) {
-      txt = parseFloat(parseFloat(txt).toPrecision(10)).toString();
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+function sendExample(text) { inputEl.value = text; sendMessage(); }
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Точное вычисление формулы через JavaScript
+function calcFormula(formula) {
+  try {
+    // Заменяем математические функции
+    let expr = formula
+      .replace(/\^/g, '**')
+      .replace(/sqrt\(/gi, 'Math.sqrt(')
+      .replace(/sin\(/gi, 'Math.sin(')
+      .replace(/cos\(/gi, 'Math.cos(')
+      .replace(/tan\(/gi, 'Math.tan(')
+      .replace(/log\(/gi, 'Math.log10(')
+      .replace(/ln\(/gi, 'Math.log(')
+      .replace(/abs\(/gi, 'Math.abs(')
+      .replace(/pi/gi, 'Math.PI')
+      .replace(/е/g, 'Math.E');
+
+    // Безопасное вычисление
+    const result = Function('"use strict"; return (' + expr + ')')();
+    if (typeof result !== 'number' || !isFinite(result)) return null;
+    return result;
+  } catch {
+    return null;
+  }
+}
+
+function formatNumber(n) {
+  if (Math.abs(n) < 1e-10 && n !== 0) return n.toExponential(6);
+  if (Math.abs(n) >= 1e15) return n.toExponential(6);
+  // Убираем плавающую погрешность
+  const rounded = parseFloat(n.toPrecision(12));
+  return rounded.toLocaleString('ru-RU', { maximumFractionDigits: 10 });
+}
+
+function addMsg(role, html) {
+  const welcome = document.getElementById('welcome');
+  if (welcome) welcome.remove();
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  if (role === 'ai') {
+    div.innerHTML = `<div class="avatar ai">ИИ</div><div class="bubble">${html}</div>`;
+  } else {
+    div.innerHTML = `<div class="avatar user-av">👤</div><div class="bubble">${escHtml(html)}</div>`;
+  }
+  chatEl.appendChild(div);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function addTyping() {
+  const div = document.createElement('div');
+  div.className = 'msg ai'; div.id = 'typing';
+  div.innerHTML = `<div class="avatar ai">ИИ</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>`;
+  chatEl.appendChild(div);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function removeTyping() {
+  const t = document.getElementById('typing');
+  if (t) t.remove();
+}
+
+async function sendMessage() {
+  const text = inputEl.value.trim();
+  if (!text) return;
+  inputEl.value = '';
+  inputEl.style.height = 'auto';
+  sendBtn.disabled = true;
+
+  addMsg('user', text);
+  addTyping();
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `Ты — переводчик математических выражений. Твоя задача ТОЛЬКО перевести запрос пользователя в математическую формулу для JavaScript.
+
+ПРАВИЛА:
+- Используй ТОЛЬКО: цифры, +, -, *, /, **, (, ), Math.sqrt(), Math.sin(), Math.cos(), Math.tan(), Math.PI, Math.abs(), Math.log10(), Math.log()
+- sin/cos/tan принимают радианы. Если пользователь пишет "градусы" — умножай на (Math.PI/180)
+- Проценты: "15% от 3000" = "3000 * 15 / 100"
+- Степень: "2 в степени 10" = "2**10"
+- Корень: "корень из 144" = "Math.sqrt(144)"
+- Слова → цифры: "двести пятьдесят" = 250, "тысяча" = 1000, "миллион" = 1000000
+
+Отвечай ТОЛЬКО JSON без markdown:
+{
+  "formula": "математическая формула для JS или null если не математика",
+  "readable": "красивая запись формулы для показа пользователю",
+  "comment": "короткий комментарий (необязательно)"
+}
+
+Если не математика: {"formula": null, "readable": null, "comment": "Я умею только считать! Напиши математический пример."}`,
+        messages: [{ role: 'user', content: text }]
+      })
+    });
+
+    const data = await response.json();
+    removeTyping();
+
+    let raw = data.content?.[0]?.text?.trim() || '';
+    let parsed;
+    try { parsed = JSON.parse(raw.replace(/```json|```/g,'').trim()); }
+    catch { parsed = null; }
+
+    if (!parsed) {
+      addMsg('ai', `<span class="error-text">Не удалось обработать запрос. Попробуй ещё раз!</span>`);
+    } else if (!parsed.formula) {
+      addMsg('ai', `<span class="error-text">${escHtml(parsed.comment || 'Напиши математический пример!')}</span>`);
+    } else {
+      // Считаем точно через JS
+      const result = calcFormula(parsed.formula);
+
+      if (result === null) {
+        addMsg('ai', `<span class="error-text">Не могу вычислить это выражение. Попробуй написать по-другому.</span>`);
+      } else {
+        const num = formatNumber(result);
+        let html = `<span class="formula-badge">формула</span>`;
+        if (parsed.readable) html += `<span class="result-expr">${escHtml(parsed.readable)}</span>`;
+        html += `<span class="result-number">${escHtml(num)}</span>`;
+        if (parsed.comment) html += `<span class="result-text">${escHtml(parsed.comment)}</span>`;
+        addMsg('ai', html);
+      }
     }
-    mainEl.textContent = txt;
+
+  } catch (err) {
+    removeTyping();
+    addMsg('ai', `<span class="error-text">Ошибка соединения. Проверь интернет!</span>`);
   }
 
-  function applyOp(a, b, op) {
-    a = parseFloat(a);
-    b = parseFloat(b);
-    if (op === '+')  return a + b;
-    if (op === '−')  return a - b;
-    if (op === '×')  return a * b;
-    if (op === '÷')  return b === 0 ? 'Ошибка' : a / b;
-  }
-
-  function formatResult(n) {
-    if (typeof n === 'string') return n;
-    return parseFloat(n.toPrecision(12)).toString();
-  }
-
-  document.querySelector('.btns').addEventListener('click', e => {
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-    const action = btn.dataset.action;
-    const val = btn.dataset.val;
-
-    if (action === 'digit') {
-      if (justEvaled) { current = val; justEvaled = false; }
-      else current = current === '0' ? val : current + val;
-      updateDisplay();
-    }
-    else if (action === 'dot') {
-      if (justEvaled) { current = '0.'; justEvaled = false; }
-      else if (!current.includes('.')) current += '.';
-      updateDisplay();
-    }
-    else if (action === 'clear') {
-      current = '0'; prev = ''; operator = ''; justEvaled = false;
-      exprEl.textContent = '';
-      updateDisplay();
-    }
-    else if (action === 'sign') {
-      if (current !== '0' && current !== 'Ошибка') {
-        current = current.startsWith('-') ? current.slice(1) : '-' + current;
-      }
-      updateDisplay();
-    }
-    else if (action === 'percent') {
-      if (current !== 'Ошибка') {
-        current = formatResult(parseFloat(current) / 100);
-      }
-      updateDisplay();
-    }
-    else if (action === 'op') {
-      if (current === 'Ошибка') return;
-      if (operator && !justEvaled) {
-        current = formatResult(applyOp(prev, current, operator));
-        updateDisplay();
-      }
-      prev = current;
-      operator = val;
-      justEvaled = false;
-      exprEl.textContent = prev + ' ' + operator;
-      current = '0';
-    }
-    else if (action === 'eq') {
-      if (!operator || current === 'Ошибка') return;
-      exprEl.textContent = prev + ' ' + operator + ' ' + current + ' =';
-      const res = applyOp(prev, current, operator);
-      current = formatResult(res);
-      operator = ''; prev = '';
-      justEvaled = true;
-      updateDisplay();
-    }
-  });
+  sendBtn.disabled = false;
+  inputEl.focus();
+}
 </script>
 
 </body>
