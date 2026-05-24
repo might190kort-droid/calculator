@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Калькулятор</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f0f0f0;
+      font-family: 'Courier New', monospace;
+    }
+
+    .calc {
+      width: 320px;
+      background: #e8e8e8;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+    }
+
+    .display {
+      padding: 1.25rem 1.25rem 1rem;
+      background: #fff;
+      min-height: 96px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .display-expr {
+      font-size: 13px;
+      color: #aaa;
+      min-height: 18px;
+      word-break: break-all;
+      text-align: right;
+    }
+
+    .display-main {
+      font-size: 38px;
+      font-weight: 500;
+      color: #111;
+      letter-spacing: -1px;
+      word-break: break-all;
+      text-align: right;
+      line-height: 1.1;
+    }
+
+    .btns {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 10px;
+    }
+
+    .btn {
+      height: 68px;
+      border-radius: 10px;
+      border: none;
+      background: #fff;
+      color: #111;
+      font-family: inherit;
+      font-size: 20px;
+      font-weight: 400;
+      cursor: pointer;
+      transition: background 0.1s, transform 0.08s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+
+    .btn:hover { background: #f5f5f5; }
+    .btn:active { transform: scale(0.93); }
+
+    .btn.fn {
+      background: #d4d4d4;
+      color: #444;
+      font-size: 15px;
+    }
+    .btn.fn:hover { background: #c8c8c8; }
+
+    .btn.op {
+      background: #d0e8ff;
+      color: #1a5fa0;
+      font-size: 22px;
+    }
+    .btn.op:hover { background: #b8d8f8; }
+
+    .btn.eq {
+      background: #1a6fc4;
+      color: #fff;
+      font-size: 24px;
+    }
+    .btn.eq:hover { background: #155aa0; }
+
+    .btn.span2 {
+      grid-column: span 2;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body { background: #1a1a1a; }
+      .calc { background: #2a2a2a; }
+      .display { background: #1f1f1f; }
+      .display-main { color: #f0f0f0; }
+      .display-expr { color: #666; }
+      .btn { background: #333; color: #eee; }
+      .btn:hover { background: #3d3d3d; }
+      .btn.fn { background: #3a3a3a; color: #bbb; }
+      .btn.fn:hover { background: #444; }
+      .btn.op { background: #0d3a66; color: #7ab8f5; }
+      .btn.op:hover { background: #164d88; }
+      .btn.eq { background: #378ADD; color: #04223f; }
+      .btn.eq:hover { background: #5598e0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="calc">
+  <div class="display">
+    <div class="display-expr" id="expr"></div>
+    <div class="display-main" id="main">0</div>
+  </div>
+
+  <div class="btns">
+    <button class="btn fn" data-action="clear">AC</button>
+    <button class="btn fn" data-action="sign">+/−</button>
+    <button class="btn fn" data-action="percent">%</button>
+    <button class="btn op" data-action="op" data-val="÷">÷</button>
+
+    <button class="btn" data-action="digit" data-val="7">7</button>
+    <button class="btn" data-action="digit" data-val="8">8</button>
+    <button class="btn" data-action="digit" data-val="9">9</button>
+    <button class="btn op" data-action="op" data-val="×">×</button>
+
+    <button class="btn" data-action="digit" data-val="4">4</button>
+    <button class="btn" data-action="digit" data-val="5">5</button>
+    <button class="btn" data-action="digit" data-val="6">6</button>
+    <button class="btn op" data-action="op" data-val="−">−</button>
+
+    <button class="btn" data-action="digit" data-val="1">1</button>
+    <button class="btn" data-action="digit" data-val="2">2</button>
+    <button class="btn" data-action="digit" data-val="3">3</button>
+    <button class="btn op" data-action="op" data-val="+">+</button>
+
+    <button class="btn span2" data-action="digit" data-val="0">0</button>
+    <button class="btn" data-action="dot">.</button>
+    <button class="btn eq" data-action="eq">=</button>
+  </div>
+</div>
+
+<script>
+  let current = '0', prev = '', operator = '', justEvaled = false;
+
+  const mainEl = document.getElementById('main');
+  const exprEl = document.getElementById('expr');
+
+  function updateDisplay() {
+    let txt = current;
+    if (txt !== 'Ошибка' && txt.length > 12) {
+      txt = parseFloat(parseFloat(txt).toPrecision(10)).toString();
+    }
+    mainEl.textContent = txt;
+  }
+
+  function applyOp(a, b, op) {
+    a = parseFloat(a);
+    b = parseFloat(b);
+    if (op === '+')  return a + b;
+    if (op === '−')  return a - b;
+    if (op === '×')  return a * b;
+    if (op === '÷')  return b === 0 ? 'Ошибка' : a / b;
+  }
+
+  function formatResult(n) {
+    if (typeof n === 'string') return n;
+    return parseFloat(n.toPrecision(12)).toString();
+  }
+
+  document.querySelector('.btns').addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const val = btn.dataset.val;
+
+    if (action === 'digit') {
+      if (justEvaled) { current = val; justEvaled = false; }
+      else current = current === '0' ? val : current + val;
+      updateDisplay();
+    }
+    else if (action === 'dot') {
+      if (justEvaled) { current = '0.'; justEvaled = false; }
+      else if (!current.includes('.')) current += '.';
+      updateDisplay();
+    }
+    else if (action === 'clear') {
+      current = '0'; prev = ''; operator = ''; justEvaled = false;
+      exprEl.textContent = '';
+      updateDisplay();
+    }
+    else if (action === 'sign') {
+      if (current !== '0' && current !== 'Ошибка') {
+        current = current.startsWith('-') ? current.slice(1) : '-' + current;
+      }
+      updateDisplay();
+    }
+    else if (action === 'percent') {
+      if (current !== 'Ошибка') {
+        current = formatResult(parseFloat(current) / 100);
+      }
+      updateDisplay();
+    }
+    else if (action === 'op') {
+      if (current === 'Ошибка') return;
+      if (operator && !justEvaled) {
+        current = formatResult(applyOp(prev, current, operator));
+        updateDisplay();
+      }
+      prev = current;
+      operator = val;
+      justEvaled = false;
+      exprEl.textContent = prev + ' ' + operator;
+      current = '0';
+    }
+    else if (action === 'eq') {
+      if (!operator || current === 'Ошибка') return;
+      exprEl.textContent = prev + ' ' + operator + ' ' + current + ' =';
+      const res = applyOp(prev, current, operator);
+      current = formatResult(res);
+      operator = ''; prev = '';
+      justEvaled = true;
+      updateDisplay();
+    }
+  });
+</script>
+
+</body>
+</html>
